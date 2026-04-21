@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Curiouser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root {
+    /* User's palette */
+    --cream: #F7F2EB;
+    --gold: #C98B2C;
+    --slate: #5C707A;
+    --terracotta: #BF5F49;
+    --slate-deep: #3F4D51;
+
+    /* Derived dark system */
+    --bg: #1A2124;                /* near-black teal */
+    --bg-deep: #12181A;           /* outer/deeper */
+    --surface: #2A3438;           /* card face */
+    --surface-hi: #344046;        /* raised */
+    --ink: var(--cream);
+    --ink-soft: rgba(247,242,235,0.72);
+    --ink-mute: rgba(247,242,235,0.48);
+    --ink-faint: rgba(247,242,235,0.28);
+    --line: rgba(247,242,235,0.08);
+    --line-strong: rgba(247,242,235,0.16);
+    --gold-wash: rgba(201,139,44,0.16);
+    --terra-wash: rgba(191,95,73,0.18);
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.2);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.32);
+    --shadow-lg: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0E1214;
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background-image:
+      radial-gradient(circle at 22% 15%, #1d272b 0%, transparent 55%),
+      radial-gradient(circle at 82% 88%, #2a1a14 0%, transparent 55%),
+      radial-gradient(circle at 50% 50%, #14191c 0%, #0a0d0e 100%);
+  }
+
+  /* ===== iOS Frame ===== */
+  .ios-device {
+    width: 390px;
+    height: 844px;
+    background: #050505;
+    border-radius: 54px;
+    padding: 11px;
+    box-shadow:
+      0 0 0 1.5px #1a1a1a,
+      0 0 0 3px #2a2a2a,
+      0 30px 80px rgba(0,0,0,0.6),
+      inset 0 0 2px rgba(255,255,255,0.08);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .ios-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+  }
+  .ios-notch {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 118px;
+    height: 35px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .status-bar {
+    height: 54px;
+    padding: 18px 34px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    position: relative;
+    z-index: 10;
+  }
+  .status-right { display: flex; gap: 6px; align-items: center; }
+  .home-indicator {
+    position: absolute;
+    bottom: 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: var(--cream);
+    opacity: 0.55;
+    border-radius: 3px;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .app-root {
+    position: absolute;
+    top: 54px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+  }
+  .scroll-area {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 120px;
+  }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* ===== Typography ===== */
+  .display { font-family: 'Cormorant Garamond', serif; font-weight: 500; letter-spacing: -0.01em; }
+  .display-i { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-style: italic; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
+  .tap { transition: transform 140ms cubic-bezier(.2,.8,.2,1); }
+  .tap:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--gold);
+    color: #1a1203;
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    width: 100%;
+    box-shadow: 0 8px 24px rgba(201,139,44,0.28);
+  }
+  .btn-ghost {
+    color: var(--ink-soft);
+    font-size: 14px;
+    padding: 12px;
+    background: transparent;
+    width: 100%;
+    font-weight: 500;
+  }
+  .btn-outline {
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 15px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .card-hi { background: var(--surface-hi); }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface);
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+    transition: all 180ms ease;
+  }
+  .chip.active {
+    background: var(--cream);
+    color: var(--bg);
+    border-color: var(--cream);
+  }
+  .chip-sm {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--gold-wash);
+    color: var(--gold);
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .chip-sm.terra { background: var(--terra-wash); color: #E08A72; }
+  .chip-sm.slate { background: rgba(92,112,122,0.24); color: #A6B8C0; }
+
+  /* ===== Placeholder media — all dark, saturated, cinematic ===== */
+  .media-ph {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: rgba(247,242,235,0.9);
+    letter-spacing: 0.04em;
+    border-radius: 12px;
+  }
+  .media-ph::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 40%),
+      radial-gradient(circle at 70% 70%, rgba(0,0,0,0.25) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .media-ph::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 45%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+  .media-ph > span { position: relative; z-index: 1; }
+
+  /* Category palettes — each a distinct mood against the dark */
+  .ph-music    { background: linear-gradient(135deg, #6B4578 0%, #3E2847 100%); }
+  .ph-playtime { background: linear-gradient(135deg, #B05A3C 0%, #5E2E1E 100%); }
+  .ph-mealtime { background: linear-gradient(135deg, #A87632 0%, #5C3F1C 100%); }
+  .ph-outdoor  { background: linear-gradient(135deg, #4E7554 0%, #263D2B 100%); }
+  .ph-art      { background: linear-gradient(135deg, #BF5F49 0%, #6B2E21 100%); }
+  .ph-social   { background: linear-gradient(135deg, #5C707A 0%, #2E3A40 100%); }
+  .ph-home     { background: linear-gradient(135deg, #7A6C58 0%, #3C342A 100%); }
+  .ph-milestone{ background: linear-gradient(135deg, #C98B2C 0%, #6B4913 100%); }
+
+  /* ===== Rings ===== */
+  .ring-bg { fill: none; stroke: var(--line-strong); stroke-width: 3; }
+  .ring-fg { fill: none; stroke-width: 3; stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 900ms cubic-bezier(.2,.8,.2,1); }
+
+  /* ===== Tab bar ===== */
+  .tabbar {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    height: 72px;
+    background: rgba(26,33,36,0.82);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    border-radius: 22px;
+    border: 1px solid var(--line-strong);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 4px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    z-index: 50;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 6px;
+    color: var(--ink-mute);
+    font-size: 10px;
+    font-weight: 500;
+    transition: color 180ms;
+    flex: 1;
+    min-width: 0;
+  }
+  .tab-item.active { color: var(--gold); }
+  .tab-add-wrap {
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tab-add {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #1a1203;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 24px rgba(201,139,44,0.45);
+    margin-top: -14px;
+  }
+
+  /* ===== Sheet ===== */
+  .sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+    z-index: 200;
+    animation: fadeIn 200ms ease both;
+  }
+  .sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    border-top: 1px solid var(--line-strong);
+    z-index: 210;
+    padding: 10px 20px 32px;
+    animation: sheetUp 280ms cubic-bezier(.2,.8,.2,1) both;
+    max-height: 80%;
+    overflow-y: auto;
+  }
+  .sheet::-webkit-scrollbar { display: none; }
+  .sheet-grab {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+    margin: 0 auto 14px;
+  }
+  .sheet.full {
+    top: 0;
+    bottom: 0;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes screenIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes stagger { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes shimmer { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+  @keyframes scanPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+  }
+  @keyframes orbitPulse {
+    0% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .screen-in { animation: screenIn 260ms ease both; }
+  .stagger-item { animation: stagger 380ms cubic-bezier(.2,.8,.2,1) both; }
+
+  /* ===== Grain overlay for premium texture ===== */
+  .grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 2000;
+  }
+
+  /* ===== Loading dots ===== */
+  .dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 2px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: shimmer 1.2s infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.15s; }
+  .dots span:nth-child(3) { animation-delay: 0.3s; }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--line-strong);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+
+  /* No-select for UI chrome */
+  .noselect { user-select: none; -webkit-user-select: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo } = React;
+
+/* ========================================================================
+   SAMPLE DATA — Sophie, 2 years 4 months
+   ======================================================================== */
+
+const CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'music', label: 'Music Class', cls: 'ph-music' },
+  { id: 'playtime', label: 'Playtime', cls: 'ph-playtime' },
+  { id: 'mealtime', label: 'Mealtime', cls: 'ph-mealtime' },
+  { id: 'outdoor', label: 'Outdoor', cls: 'ph-outdoor' },
+  { id: 'art', label: 'Art', cls: 'ph-art' },
+  { id: 'social', label: 'Social', cls: 'ph-social' },
+  { id: 'home', label: 'At Home', cls: 'ph-home' },
+  { id: 'milestone', label: 'Milestones', cls: 'ph-milestone' },
+];
+
+const catCls = (id) => (CATEGORIES.find(c => c.id === id) || {}).cls || 'ph-home';
+const catLabel = (id) => (CATEGORIES.find(c => c.id === id) || {}).label || '';
+
+/* EYFS areas */
+const EYFS = [
+  { id: 'comm',    short: 'Comm',     name: 'Communication & Language',       level: 'confident',  score: 0.82, color: 'var(--gold)' },
+  { id: 'phys',    short: 'Phys',     name: 'Physical Development',           level: 'developing', score: 0.68, color: 'var(--gold)' },
+  { id: 'pse',     short: 'PSE',      name: 'Personal, Social & Emotional',   level: 'developing', score: 0.64, color: 'var(--gold)' },
+  { id: 'lit',     short: 'Lit',      name: 'Literacy',                       level: 'emerging',   score: 0.42, color: 'var(--terracotta)' },
+  { id: 'math',    short: 'Math',     name: 'Mathematics',                    level: 'emerging',   score: 0.48, color: 'var(--terracotta)' },
+  { id: 'world',   short: 'World',    name: 'Understanding the World',        level: 'developing', score: 0.72, color: 'var(--gold)' },
+  { id: 'arts',    short: 'Arts',     name: 'Expressive Arts & Design',       level: 'confident',  score: 0.86, color: 'var(--gold)' },
+];
+
+/* ~30 memories */
+const MEMORIES = [
+  { id: 1,  cat: 'music',    cap: "Singing 'Twinkle Twinkle' — full chorus", date: 'Jan 22',  loc: 'Music Mondays', eyfs: ['comm','arts'] },
+  { id: 2,  cat: 'playtime', cap: "Stacking blocks — reached 8 high",        date: 'Jan 21',  loc: 'Living room',    eyfs: ['phys','math'] },
+  { id: 3,  cat: 'outdoor',  cap: "First time on the big swing",             date: 'Jan 20',  loc: 'Regent\u2019s Park', eyfs: ['phys','pse'] },
+  { id: 4,  cat: 'mealtime', cap: "Using fork to spear broccoli",            date: 'Jan 20',  loc: 'Kitchen',        eyfs: ['phys','pse'] },
+  { id: 5,  cat: 'art',      cap: "First self-portrait — two eyes, a smile", date: 'Jan 19',  loc: 'Art corner',     eyfs: ['arts','pse'] },
+  { id: 6,  cat: 'social',   cap: "Shared toy with Leo without prompting",   date: 'Jan 19',  loc: 'Playdate',       eyfs: ['pse','comm'] },
+  { id: 7,  cat: 'milestone',cap: "Counted to ten unprompted",               date: 'Jan 18',  loc: 'Bath time',      eyfs: ['math','comm'] },
+  { id: 8,  cat: 'music',    cap: "Tapping rhythm on the drum",              date: 'Jan 17',  loc: 'Music Mondays', eyfs: ['arts','phys'] },
+  { id: 9,  cat: 'home',     cap: "Helped put socks in the laundry",         date: 'Jan 17',  loc: 'Bedroom',        eyfs: ['pse','phys'] },
+  { id: 10, cat: 'outdoor',  cap: "Pointing at birds: 'duck! duck!'",        date: 'Jan 16',  loc: 'Hampstead Ponds', eyfs: ['comm','world'] },
+  { id: 11, cat: 'art',      cap: "Circular scribbles in deep purple",       date: 'Jan 16',  loc: 'Kitchen table',  eyfs: ['arts'] },
+  { id: 12, cat: 'playtime', cap: "Pretending to cook in the play kitchen",  date: 'Jan 15',  loc: 'Playroom',       eyfs: ['pse','world'] },
+  { id: 13, cat: 'social',   cap: "Waved goodbye to grandma on FaceTime",    date: 'Jan 15',  loc: 'Living room',    eyfs: ['comm','pse'] },
+  { id: 14, cat: 'mealtime', cap: "Tried avocado — verdict: yes",            date: 'Jan 14',  loc: 'High chair',     eyfs: ['pse'] },
+  { id: 15, cat: 'music',    cap: "Spinning to 'Baa Baa Black Sheep'",       date: 'Jan 13',  loc: 'Music Mondays', eyfs: ['phys','arts'] },
+  { id: 16, cat: 'outdoor',  cap: "Splashed in a puddle — twice",            date: 'Jan 13',  loc: 'Garden path',    eyfs: ['phys','world'] },
+  { id: 17, cat: 'home',     cap: "Reading 'The Gruffalo' — turning pages",  date: 'Jan 12',  loc: 'Bedtime',        eyfs: ['lit','comm'] },
+  { id: 18, cat: 'milestone',cap: "Said 'I love you, Mama' — unprompted",    date: 'Jan 12',  loc: 'Bedtime',        eyfs: ['comm','pse'] },
+  { id: 19, cat: 'art',      cap: "Collage with tissue paper and glue",      date: 'Jan 11',  loc: 'Art corner',     eyfs: ['arts','phys'] },
+  { id: 20, cat: 'playtime', cap: "Building a train track — all curves",     date: 'Jan 11',  loc: 'Playroom',       eyfs: ['math','phys'] },
+  { id: 21, cat: 'social',   cap: "Joined circle time, sat for 5 minutes",   date: 'Jan 10',  loc: 'Nursery',        eyfs: ['pse','comm'] },
+  { id: 22, cat: 'mealtime', cap: "Poured water into her own cup",           date: 'Jan 10',  loc: 'Kitchen',        eyfs: ['phys','pse'] },
+  { id: 23, cat: 'outdoor',  cap: "Chased leaves in the wind",               date: 'Jan 09',  loc: 'Back garden',    eyfs: ['phys','world'] },
+  { id: 24, cat: 'music',    cap: "Hummed along to the piano melody",        date: 'Jan 08',  loc: 'Home',           eyfs: ['arts','comm'] },
+  { id: 25, cat: 'home',     cap: "Sorted blocks by colour on her own",      date: 'Jan 08',  loc: 'Playroom',       eyfs: ['math','world'] },
+  { id: 26, cat: 'playtime', cap: "Teddy tea party with three cups",         date: 'Jan 07',  loc: 'Bedroom',        eyfs: ['arts','pse'] },
+  { id: 27, cat: 'art',      cap: "Finger-painting — hands all yellow",      date: 'Jan 07',  loc: 'Kitchen',        eyfs: ['arts','phys'] },
+  { id: 28, cat: 'social',   cap: "Hugged Leo when he was upset",            date: 'Jan 06',  loc: 'Playdate',       eyfs: ['pse','comm'] },
+  { id: 29, cat: 'milestone',cap: "First full sentence: 'Dog go home'",      date: 'Jan 05',  loc: 'Walk home',      eyfs: ['comm','lit'] },
+  { id: 30, cat: 'outdoor',  cap: "Picked up a pinecone, studied it",        date: 'Jan 04',  loc: 'Heath',          eyfs: ['world','phys'] },
+];
+
+const REELS = [
+  { id: 'r1', title: 'Sophie at the park',            range: 'Jan 16 \u2014 Jan 23',  count: 12, cat: 'outdoor',   subtitle: 'Twelve bright moments under open sky' },
+  { id: 'r2', title: 'First Words Week',               range: 'Jan 05 \u2014 Jan 12',  count: 9,  cat: 'milestone', subtitle: 'Language blooming, one syllable at a time' },
+  { id: 'r3', title: 'Music Mondays \u2014 January',   range: 'All month',             count: 18, cat: 'music',     subtitle: 'Rhythm, repetition, and pure delight' },
+  { id: 'r4', title: 'The Art of Sophie',              range: 'Jan 07 \u2014 Jan 19',  count: 7,  cat: 'art',       subtitle: 'Her first deliberate marks on the world' },
+];
+
+const REPORT = {
+  period: 'January 2026',
+  summary: "Sophie is showing strong progress in expressive language and artistic expression this month. Her confidence in social settings is growing steadily, and she\u2019s beginning to show early signs of mathematical curiosity \u2014 particularly around sorting and counting.",
+  areas: EYFS.map((a) => ({ ...a })),
+  details: {
+    comm:  { highlights: [29, 18], suggestion: "Try introducing simple rhyming books \u2014 Sophie loves repetition right now, and rhyme is a natural next step." },
+    phys:  { highlights: [3, 22],  suggestion: "She\u2019s ready for balance challenges \u2014 low beams, tip-toe walks, or stepping stones at the park." },
+    pse:   { highlights: [6, 28],  suggestion: "Keep inviting parallel play \u2014 her empathy is emerging beautifully through small gestures." },
+    lit:   { highlights: [17, 29], suggestion: "Point to words as you read aloud. She\u2019s beginning to notice that symbols carry meaning." },
+    math:  { highlights: [25, 7],  suggestion: "Count small things together \u2014 raisins, stones, steps. She\u2019s building number sense through daily rhythm." },
+    world: { highlights: [30, 10], suggestion: "Nature walks are her canvas. Name what you both notice \u2014 she\u2019s cataloguing the world in real time." },
+    arts:  { highlights: [5, 27],  suggestion: "Offer a wider palette \u2014 clay, ribbon, chalk. Her mark-making is becoming intentional and joyful." },
+  },
+};
+
+const memById = (id) => MEMORIES.find(m => m.id === id);
+
+/* ========================================================================
+   ICONS — custom line set (hand-crafted, consistent 1.5px weight)
+   ======================================================================== */
+const Icon = ({ name, size = 22, stroke = 1.6 }) => {
+  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: stroke, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (name) {
+    case 'grid':
+      return <svg {...common}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>;
+    case 'reel':
+      return <svg {...common}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>;
+    case 'chart':
+      return <svg {...common}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>;
+    case 'user':
+      return <svg {...common}><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>;
+    case 'plus':
+      return <svg {...common} strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>;
+    case 'home':
+      return <svg {...common}><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1z"/></svg>;
+    case 'chevron':
+      return <svg {...common}><path d="M9 6l6 6-6 6"/></svg>;
+    case 'chevron-l':
+      return <svg {...common}><path d="M15 6l-6 6 6 6"/></svg>;
+    case 'close':
+      return <svg {...common}><path d="M6 6l12 12M18 6L6 18"/></svg>;
+    case 'play':
+      return <svg {...common}><path d="M8 5v14l11-7z" fill="currentColor"/></svg>;
+    case 'sparkle':
+      return <svg {...common}><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 3l.9 2.1L22 6l-2.1.9L19 9l-.9-2.1L16 6l2.1-.9zM5 15l.7 1.7L7.5 17l-1.7.7L5 19.5l-.7-1.7L2.5 17l1.7-.7z" fill="currentColor" stroke="none"/></svg>;
+    case 'camera':
+      return <svg {...common}><path d="M3 7h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="4"/></svg>;
+    case 'calendar':
+      return <svg {...common}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>;
+    case 'pin':
+      return <svg {...common}><path d="M12 22s7-7 7-12a7 7 0 10-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>;
+    case 'lock':
+      return <svg {...common}><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>;
+    case 'export':
+      return <svg {...common}><path d="M12 15V3M7 8l5-5 5 5M4 17v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>;
+    case 'edit':
+      return <svg {...common}><path d="M4 20h4l10-10-4-4L4 16zM14 6l4 4"/></svg>;
+    case 'heart':
+      return <svg {...common}><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.7A4 4 0 0119 10c0 5.5-7 10-7 10z"/></svg>;
+    case 'check':
+      return <svg {...common}><path d="M5 12l4 4 10-10"/></svg>;
+    case 'book':
+      return <svg {...common}><path d="M4 5a2 2 0 012-2h14v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h14"/></svg>;
+    default: return null;
+  }
+};
+
+/* EYFS icons — tiny glyphs specific to each area */
+const EyfsIcon = ({ id, size = 18 }) => {
+  const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (id) {
+    case 'comm':  return <svg {...p}><path d="M4 6h14a2 2 0 012 2v6a2 2 0 01-2 2H9l-4 4v-4H4a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>;
+    case 'phys':  return <svg {...p}><circle cx="12" cy="5" r="2"/><path d="M12 8v6l-3 7M12 8v6l3 7M7 11l5-3 5 3"/></svg>;
+    case 'pse':   return <svg {...p}><circle cx="12" cy="12" r="8"/><path d="M9 10c.5.5 1.5.5 2 0M13 10c.5.5 1.5.5 2 0M9 14c1 1 4 1 6 0"/></svg>;
+    case 'lit':   return <svg {...p}><path d="M4 5a2 2 0 012-2h14v16H6a2 2 0 00-2 2zM8 8h8M8 12h6"/></svg>;
+    case 'math':  return <svg {...p}><path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 16h6M16 13v6"/></svg>;
+    case 'world': return <svg {...p}><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 3 2.5 13 0 16M12 4c-2.5 3-2.5 13 0 16"/></svg>;
+    case 'arts':  return <svg {...p}><path d="M12 3c5 0 9 4 9 8a3 3 0 01-3 3h-2a2 2 0 00-2 2v1a3 3 0 01-6 0c0-5 1-14 4-14z"/><circle cx="8" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="7" r="1" fill="currentColor"/><circle cx="16" cy="10" r="1" fill="currentColor"/></svg>;
+    default: return null;
+  }
+};
+
+/* ========================================================================
+   iOS FRAME
+   ======================================================================== */
+function IOSFrame({ children }) {
+  return (
+    <div className="ios-device noselect">
+      <div className="ios-screen">
+        <div className="ios-notch" />
+        <div className="status-bar">
+          <span>9:41</span>
+          <div className="status-right">
+            {/* signal */}
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+            {/* wifi */}
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 4a10 10 0 0114 0"/><path d="M4 7a6 6 0 018 0"/><circle cx="8" cy="10" r="0.8" fill="currentColor"/></svg>
+            {/* battery */}
+            <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" strokeOpacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1.2" fill="currentColor"/><rect x="23.5" y="4" width="1.5" height="4" rx="0.5" fill="currentColor" fillOpacity="0.5"/></svg>
+          </div>
+        </div>
+        <div className="app-root">
+          {children}
+        </div>
+        <div className="home-indicator" />
+        <div className="grain" />
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   APP — state machine at the top
+   ======================================================================== */
+function App() {
+  const [onboarded, setOnboarded] = useState(false);
+  const [tab, setTab] = useState('home'); // home | memories | reels | dev | profile
+  const [uploadSheet, setUploadSheet] = useState(false);
+  const [activeMemory, setActiveMemory] = useState(null);
+  const [activeReel, setActiveReel] = useState(null);
+  const [activeEyfs, setActiveEyfs] = useState(null);
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
+  const [autoSyncOpen, setAutoSyncOpen] = useState(false);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+  const [lastSyncMinutes, setLastSyncMinutes] = useState(42);
+
+  if (!onboarded) {
+    return <IOSFrame><Onboarding onDone={() => setOnboarded(true)} /></IOSFrame>;
+  }
+
+  return (
+    <IOSFrame>
+      <div className="screen-in" style={{ position: 'absolute', inset: 0 }} key={tab}>
+        {tab === 'home'     && <HomeScreen onOpenMemory={setActiveMemory} onOpenReel={setActiveReel} onTabChange={setTab} onOpenEyfs={setActiveEyfs} autoSyncEnabled={autoSyncEnabled} lastSyncMinutes={lastSyncMinutes}/>}
+        {tab === 'memories' && <MemoriesScreen onOpenMemory={setActiveMemory} />}
+        {tab === 'reels'    && <ReelsScreen onOpenReel={setActiveReel} />}
+        {tab === 'dev'      && <DevScreen onOpenEyfs={setActiveEyfs} onMethodology={() => setMethodologyOpen(true)} onOpenMemory={setActiveMemory} />}
+        {tab === 'profile'  && <ProfileScreen onOpenAutoSync={() => setAutoSyncOpen(true)} autoSyncEnabled={autoSyncEnabled}/>}
+      </div>
+
+      <TabBar current={tab} onChange={setTab} onAdd={() => setUploadSheet(true)} />
+
+      {uploadSheet   && <UploadSheet onClose={() => setUploadSheet(false)} />}
+      {activeMemory  && <MemoryDetailSheet memory={activeMemory} onClose={() => setActiveMemory(null)} onOpenEyfs={(id) => { setActiveMemory(null); setActiveEyfs(id); }} />}
+      {activeReel    && <ReelPlayer reel={activeReel} onClose={() => setActiveReel(null)} />}
+      {activeEyfs    && <EyfsDetailSheet areaId={activeEyfs} onClose={() => setActiveEyfs(null)} onOpenMemory={(m) => { setActiveEyfs(null); setActiveMemory(m); }} />}
+      {methodologyOpen && <MethodologySheet onClose={() => setMethodologyOpen(false)} />}
+      {autoSyncOpen && <AutoSyncSettingsSheet onClose={() => setAutoSyncOpen(false)} enabled={autoSyncEnabled} onToggle={setAutoSyncEnabled} lastSyncMinutes={lastSyncMinutes}/>}
+    </IOSFrame>
+  );
+}
+
+/* ========================================================================
+   ONBOARDING
+   ======================================================================== */
+function Onboarding({ onDone }) {
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState('Sophie');
+  const [nickname, setNickname] = useState('Soph');
+  const [dob, setDob] = useState('2023-09-14');
+  const [permissionDialog, setPermissionDialog] = useState(false);
+  const [permission, setPermission] = useState(null); // null | 'granted' | 'limited'
+
+  // Step 0: welcome, 1: child, 2: auto-sync pitch, 3: scanning
+  const totalSteps = 3;
+
+  const handleCTA = () => {
+    if (step === 0 || step === 1) {
+      setStep(step + 1);
+    } else if (step === 2) {
+      // Open iOS-style permission dialog
+      setPermissionDialog(true);
+    } else if (step === 3) {
+      onDone();
+    }
+  };
+
+  const onPermissionResponse = (resp) => {
+    setPermission(resp);
+    setPermissionDialog(false);
+    if (resp === 'granted' || resp === 'limited') {
+      setStep(3);
+    }
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', padding: '20px 24px 28px' }}>
+      {/* progress dots */}
+      {step < 3 && (
+        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 4 }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{
+              width: i === step ? 24 : 6, height: 6, borderRadius: 3,
+              background: i <= step ? 'var(--gold)' : 'var(--line-strong)',
+              transition: 'all 300ms'
+            }}/>
+          ))}
+        </div>
+      )}
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', animation: 'screenIn 320ms ease both' }} key={step}>
+        {step === 0 && (
+          <div style={{ textAlign: 'center' }}>
+            <div className="eyebrow" style={{ marginBottom: 22 }}>Curiouser</div>
+            <div style={{ width: 90, height: 90, margin: '0 auto 28px', position: 'relative' }}>
+              <svg viewBox="0 0 90 90" width="90" height="90">
+                <defs>
+                  <radialGradient id="og" cx="50%" cy="40%"><stop offset="0%" stopColor="#E9C589"/><stop offset="100%" stopColor="#C98B2C"/></radialGradient>
+                </defs>
+                <circle cx="45" cy="45" r="30" fill="url(#og)" opacity="0.22"/>
+                <circle cx="45" cy="45" r="18" fill="url(#og)" opacity="0.55"/>
+                <circle cx="45" cy="45" r="7" fill="#C98B2C"/>
+              </svg>
+            </div>
+            <h1 className="display" style={{ fontSize: 42, lineHeight: 1.05, margin: '0 0 18px' }}>
+              Every small moment,<br/><span className="display-i">remembered.</span>
+            </h1>
+            <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--ink-soft)', margin: '0 24px', fontWeight: 400 }}>
+              A quiet place for your child&rsquo;s photos and videos &mdash; gently organised, and gently understood.
+            </p>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 14 }}>Step two</div>
+            <h2 className="display" style={{ fontSize: 34, margin: '0 0 10px', lineHeight: 1.1 }}>
+              Tell us about<br/><span className="display-i">your little one.</span>
+            </h2>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-mute)', margin: '0 0 28px' }}>
+              Just enough to personalise. Nothing is shared.
+            </p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #E9C589, #C98B2C)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1203', fontFamily: 'Cormorant Garamond', fontSize: 32, fontWeight: 500, boxShadow: '0 6px 20px rgba(201,139,44,0.3)' }}>
+                {name[0] || '?'}
+              </div>
+              <button className="chip tap" style={{ fontSize: 12 }}>
+                <Icon name="camera" size={14}/>&nbsp; Add photo
+              </button>
+            </div>
+
+            <FieldInput label="First name" value={name} onChange={setName}/>
+            <FieldInput label="Nickname (optional)" value={nickname} onChange={setNickname}/>
+            <FieldInput label="Date of birth" value={dob} onChange={setDob} type="date"/>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 14 }}>Final step</div>
+            <h2 className="display" style={{ fontSize: 32, margin: '0 0 10px', lineHeight: 1.1 }}>
+              Let Curiouser<br/><span className="display-i">do the work.</span>
+            </h2>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-mute)', margin: '0 0 22px', lineHeight: 1.5 }}>
+              You take the photos. We quietly find {name || 'your child'} in them, sort them, and surface what matters.
+            </p>
+
+            {/* Animated preview of the auto-sync process */}
+            <AutoSyncPreview name={name || 'Sophie'}/>
+
+            {/* What happens list */}
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <PermRow kind="yes" text={<span>We only keep photos that contain <b>{name || 'your child'}</b>.</span>}/>
+              <PermRow kind="yes" text={<span>Faces are matched <b>on your device</b>. Nothing leaves it.</span>}/>
+              <PermRow kind="yes" text={<span>You can pause, review, or delete anything, any time.</span>}/>
+              <PermRow kind="no"  text={<span>We never read photos of other people or strangers.</span>}/>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--ink-mute)', fontSize: 11.5, marginTop: 18 }}>
+              <Icon name="lock" size={13}/>
+              <span>iOS will ask next. You can grant full or limited access.</span>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <AutoSyncScan name={name || 'Sophie'} permission={permission} onContinue={onDone}/>
+        )}
+      </div>
+
+      {step < 3 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <button className="btn-primary tap" onClick={handleCTA}>
+            {step === 0 ? 'Begin' : step === 1 ? 'Continue' : 'Turn on auto-sync'}
+          </button>
+          {step > 0 && step < 2 && (
+            <button className="btn-ghost tap" onClick={() => setStep(step - 1)}>Back</button>
+          )}
+          {step === 2 && (
+            <button className="btn-ghost tap" onClick={() => { setPermission('skipped'); setStep(3); }}>
+              Not now &mdash; I&rsquo;ll add manually
+            </button>
+          )}
+        </div>
+      )}
+
+      {permissionDialog && (
+        <IOSPermissionDialog
+          name={name || 'Sophie'}
+          onAllowFull={() => onPermissionResponse('granted')}
+          onAllowLimited={() => onPermissionResponse('limited')}
+          onDeny={() => { setPermissionDialog(false); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function FieldInput({ label, value, onChange, type = 'text' }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: 'block', fontSize: 11, color: 'var(--ink-mute)', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '14px 16px',
+          background: 'var(--surface)',
+          border: '1px solid var(--line-strong)',
+          borderRadius: 12,
+          color: 'var(--ink)',
+          fontSize: 15,
+          fontFamily: 'Inter, sans-serif',
+          outline: 'none',
+        }}
+        onFocus={(e) => e.target.style.borderColor = 'var(--gold)'}
+        onBlur={(e) => e.target.style.borderColor = 'var(--line-strong)'}
+      />
+    </div>
+  );
+}
+
+/* ========================================================================
+   AUTO-SYNC COMPONENTS
+   ======================================================================== */
+
+/* Animated preview showing what Curiouser will do with the photo library */
+function AutoSyncPreview({ name }) {
+  // Cycle through a tiny demo: scan → match face → categorise
+  const [phase, setPhase] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setPhase(p => (p + 1) % 3), 2000);
+    return () => clearInterval(t);
+  }, []);
+
+  const demoPhotos = [
+    { cls: 'ph-outdoor',  hit: true  },
+    { cls: 'ph-social',   hit: false }, // friend's birthday, not your child
+    { cls: 'ph-mealtime', hit: true  },
+    { cls: 'ph-home',     hit: false }, // receipt screenshot
+    { cls: 'ph-art',      hit: true  },
+    { cls: 'ph-playtime', hit: true  },
+  ];
+
+  return (
+    <div style={{ position: 'relative', padding: 16, background: 'var(--surface-hi)', borderRadius: 16, border: '1px solid var(--line)', overflow: 'hidden' }}>
+      {/* top chrome mimicking iOS Photos */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--terracotta)', opacity: 0.7 }}/>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)', opacity: 0.7 }}/>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#87A085', opacity: 0.7 }}/>
+        <div className="mono" style={{ marginLeft: 6, color: 'var(--ink-mute)' }}>PHOTOS &middot; 2,847 ITEMS</div>
+      </div>
+
+      {/* 3x2 grid of sample photos — each gets a subtle overlay based on phase */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+        {demoPhotos.map((p, i) => (
+          <div key={i} className={`media-ph ${p.cls}`}
+               style={{
+                 height: 56, padding: 0, borderRadius: 6,
+                 position: 'relative',
+                 opacity: phase === 0 ? 1 : (p.hit ? 1 : 0.22),
+                 transition: 'opacity 600ms ease',
+               }}>
+            {/* Phase 1: face detection reticle on hits */}
+            {phase >= 1 && p.hit && (
+              <div style={{
+                position: 'absolute', inset: 4,
+                border: `1.5px solid var(--gold)`,
+                borderRadius: 4,
+                zIndex: 5,
+                animation: 'scanPulse 1.4s ease-in-out infinite',
+              }}/>
+            )}
+            {/* Phase 2: checkmark appears */}
+            {phase === 2 && p.hit && (
+              <div style={{
+                position: 'absolute', top: 4, right: 4,
+                width: 16, height: 16, borderRadius: '50%',
+                background: 'var(--gold)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#1a1203',
+                zIndex: 6,
+                animation: 'popIn 240ms cubic-bezier(.3,1.3,.4,1) both',
+              }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10"/></svg>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* status line under grid */}
+      <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, minHeight: 18 }}>
+        {phase === 0 && (
+          <>
+            <div className="spinner" style={{ width: 13, height: 13, borderWidth: 1.5 }}/>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>Scanning your library&hellip;</div>
+          </>
+        )}
+        {phase === 1 && (
+          <>
+            <div style={{ color: 'var(--gold)' }}><Icon name="sparkle" size={13}/></div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>Looking for <b>{name}</b> on-device</div>
+          </>
+        )}
+        {phase === 2 && (
+          <>
+            <div style={{ color: 'var(--gold)' }}><Icon name="check" size={13}/></div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>4 moments of <b>{name}</b> &middot; 2 skipped</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* A single yes/no row for the permissions list */
+function PermRow({ kind, text }) {
+  const isYes = kind === 'yes';
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+      <div style={{
+        flexShrink: 0,
+        width: 20, height: 20, borderRadius: '50%',
+        background: isYes ? 'var(--gold-wash)' : 'var(--terra-wash)',
+        color: isYes ? 'var(--gold)' : '#E08A72',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginTop: 1,
+      }}>
+        {isYes
+          ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10"/></svg>
+          : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        }
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>{text}</div>
+    </div>
+  );
+}
+
+/* iOS-style system permission dialog — an alert that appears over the app */
+function IOSPermissionDialog({ name, onAllowFull, onAllowLimited, onDeny }) {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: 'rgba(0,0,0,0.5)',
+      backdropFilter: 'blur(2px)',
+      zIndex: 500,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      animation: 'fadeIn 220ms ease both',
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: 270,
+        background: 'rgba(60,60,64,0.92)',
+        backdropFilter: 'blur(30px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(30px) saturate(1.4)',
+        borderRadius: 14,
+        overflow: 'hidden',
+        color: '#fff',
+        fontFamily: '-apple-system, "SF Pro Text", sans-serif',
+        animation: 'popIn 260ms cubic-bezier(.2,1.2,.4,1) both',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+      }}>
+        <div style={{ padding: '18px 16px 14px', textAlign: 'center' }}>
+          <div style={{ fontSize: 14.5, fontWeight: 600, marginBottom: 4, color: '#fff', fontFamily: '-apple-system, "SF Pro Text", sans-serif' }}>
+            "Curiouser" Would Like Access to Your Photos
+          </div>
+          <div style={{ fontSize: 12, lineHeight: 1.4, color: 'rgba(255,255,255,0.88)', fontFamily: '-apple-system, "SF Pro Text", sans-serif' }}>
+            This lets Curiouser find photos of {name} on your device and quietly organise them into your memory library. Faces are matched on-device.
+          </div>
+        </div>
+        {/* Three options stacked — iOS 14+ style */}
+        {[
+          { label: 'Allow Access to All Photos',  onClick: onAllowFull,    bold: true },
+          { label: 'Limit Access to Selected Photos', onClick: onAllowLimited, bold: true },
+          { label: "Don't Allow",                onClick: onDeny,                     },
+        ].map((opt, i, arr) => (
+          <button key={i}
+                  onClick={opt.onClick}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderTop: '0.5px solid rgba(255,255,255,0.2)',
+                    color: '#0A84FF',
+                    fontSize: 15.5,
+                    fontWeight: opt.bold ? 600 : 400,
+                    fontFamily: '-apple-system, "SF Pro Text", sans-serif',
+                    background: 'transparent',
+                    textAlign: 'center',
+                  }}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* The live scanning screen after permission is granted */
+function AutoSyncScan({ name, permission, onContinue }) {
+  const [scanned, setScanned] = useState(0);
+  const [found, setFound] = useState(0);
+  const [phase, setPhase] = useState('scanning'); // scanning | done
+  const TOTAL = 2847;
+  const TARGET_FOUND = 128;
+
+  useEffect(() => {
+    // Animate the counters over ~3.6 seconds
+    const duration = 3600;
+    const start = performance.now();
+    let raf;
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / duration);
+      // Ease out
+      const eased = 1 - Math.pow(1 - p, 3);
+      setScanned(Math.floor(TOTAL * eased));
+      setFound(Math.floor(TARGET_FOUND * eased));
+      if (p < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        setPhase('done');
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Permission was skipped — show a different end state
+  if (permission === 'skipped') {
+    return (
+      <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+        <div style={{ width: 64, height: 64, margin: '0 auto 20px', borderRadius: '50%', background: 'var(--surface-hi)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-mute)' }}>
+          <Icon name="camera" size={26}/>
+        </div>
+        <h2 className="display" style={{ fontSize: 28, margin: '0 0 10px', lineHeight: 1.15 }}>
+          No problem.<br/><span className="display-i">Take your time.</span>
+        </h2>
+        <p style={{ fontSize: 13.5, color: 'var(--ink-mute)', lineHeight: 1.55, margin: '0 16px 26px' }}>
+          You can turn on auto-sync any time from <b>Profile &middot; Privacy</b>, or add moments one at a time from the <b>+</b> button.
+        </p>
+        <button className="btn-primary tap" onClick={onContinue}>Enter Curiouser</button>
+      </div>
+    );
+  }
+
+  const isDone = phase === 'done';
+
+  return (
+    <div style={{ textAlign: 'center', padding: '10px 0' }}>
+      {/* Animated orb */}
+      <div style={{ width: 120, height: 120, margin: '0 auto 22px', position: 'relative' }}>
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <defs>
+            <radialGradient id="scanG" cx="50%" cy="40%">
+              <stop offset="0%" stopColor="#E9C589"/>
+              <stop offset="100%" stopColor="#C98B2C"/>
+            </radialGradient>
+          </defs>
+          {/* Concentric rings */}
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--gold)" strokeOpacity="0.12" strokeWidth="1"/>
+          <circle cx="60" cy="60" r="40" fill="none" stroke="var(--gold)" strokeOpacity="0.18" strokeWidth="1"/>
+          <circle cx="60" cy="60" r="30" fill="url(#scanG)" opacity="0.35"/>
+          <circle cx="60" cy="60" r={isDone ? 22 : 14} fill="url(#scanG)" opacity="0.75"
+                  style={{ transition: 'r 600ms cubic-bezier(.3,1.3,.4,1)' }}/>
+          {!isDone && (
+            <>
+              {/* Orbit pulses */}
+              <circle cx="60" cy="60" r="28" fill="none" stroke="var(--gold)" strokeWidth="1.5"
+                      style={{ transformOrigin: 'center', animation: 'orbitPulse 2s ease-out infinite' }}/>
+              <circle cx="60" cy="60" r="28" fill="none" stroke="var(--gold)" strokeWidth="1.5"
+                      style={{ transformOrigin: 'center', animation: 'orbitPulse 2s ease-out infinite', animationDelay: '1s' }}/>
+            </>
+          )}
+          {isDone && (
+            <g style={{ animation: 'popIn 400ms cubic-bezier(.3,1.3,.4,1) both' }}>
+              <path d="M46 60l10 10 20-22" fill="none" stroke="#1a1203" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+            </g>
+          )}
+        </svg>
+      </div>
+
+      {!isDone ? (
+        <>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>Auto-syncing</div>
+          <h2 className="display" style={{ fontSize: 28, margin: '0 0 8px', lineHeight: 1.15 }}>
+            Finding <span className="display-i">{name}</span> in<br/>your memories&hellip;
+          </h2>
+          <p style={{ fontSize: 12.5, color: 'var(--ink-mute)', lineHeight: 1.5, margin: '0 16px 22px' }}>
+            Everything happens on your device. Nothing leaves your phone.
+          </p>
+
+          <div style={{ display: 'flex', gap: 10, padding: '0 6px' }}>
+            <ScanStat label="Scanned" value={scanned.toLocaleString()}/>
+            <div style={{ width: 1, background: 'var(--line)' }}/>
+            <ScanStat label="Moments of Sophie" value={found} highlight/>
+            <div style={{ width: 1, background: 'var(--line)' }}/>
+            <ScanStat label="Categories" value={Math.min(8, Math.floor(found / 16))}/>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="eyebrow" style={{ color: 'var(--gold)', marginBottom: 10 }}>All done</div>
+          <h2 className="display" style={{ fontSize: 30, margin: '0 0 8px', lineHeight: 1.1 }}>
+            <span className="display-i">{TARGET_FOUND} moments</span><br/>of {name}, ready.
+          </h2>
+          <p style={{ fontSize: 13, color: 'var(--ink-mute)', lineHeight: 1.55, margin: '0 16px 22px' }}>
+            We&rsquo;ve organised them across 8 categories. You can review, edit, or remove anything from your library.
+          </p>
+
+          <div style={{ padding: 14, background: 'var(--surface-hi)', borderRadius: 14, textAlign: 'left', marginBottom: 20 }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>First glance</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 12 }}>
+              {[
+                ['Playtime', 24], ['Outdoor', 21],
+                ['Mealtime', 18], ['Art', 14],
+                ['Music', 18], ['Social', 11],
+                ['Milestones', 8], ['At Home', 14],
+              ].map(([label, n]) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
+                  <span style={{ color: 'var(--ink-soft)' }}>{label}</span>
+                  <span style={{ color: 'var(--gold)', fontFamily: 'JetBrains Mono, monospace' }}>{n}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button className="btn-primary tap" onClick={onContinue}>Enter Curiouser</button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ScanStat({ label, value, highlight }) {
+  return (
+    <div style={{ flex: 1, textAlign: 'center' }}>
+      <div className="display" style={{ fontSize: 22, lineHeight: 1, color: highlight ? 'var(--gold)' : 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div style={{ fontSize: 9.5, color: 'var(--ink-mute)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   HOME / TIMELINE
+   ======================================================================== */
+function HomeScreen({ onOpenMemory, onOpenReel, onTabChange, onOpenEyfs, autoSyncEnabled, lastSyncMinutes }) {
+  return (
+    <div className="scroll-area">
+      {/* Auto-sync banner — shows what just arrived */}
+      {autoSyncEnabled && (
+        <div style={{ padding: '14px 22px 0', animation: 'slideDown 420ms ease both' }}>
+          <button className="tap" onClick={() => onTabChange('memories')} style={{
+            width: '100%',
+            padding: '12px 14px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            background: 'linear-gradient(135deg, rgba(201,139,44,0.12), rgba(201,139,44,0.04))',
+            border: '1px solid rgba(201,139,44,0.22)',
+            borderRadius: 14,
+            textAlign: 'left',
+          }}>
+            <div style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', background: 'var(--gold-wash)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="sparkle" size={14}/>
+              <span style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)', boxShadow: '0 0 0 2px var(--bg)', animation: 'shimmer 2s infinite' }}/>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', marginBottom: 1 }}>
+                <b style={{ color: 'var(--gold)' }}>3 new moments</b> added this morning
+              </div>
+              <div style={{ fontSize: 10.5, color: 'var(--ink-mute)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.04em' }}>
+                AUTO-SYNC &middot; {lastSyncMinutes}M AGO
+              </div>
+            </div>
+            <Icon name="chevron" size={14}/>
+          </button>
+        </div>
+      )}
+
+      {/* Header */}
+      <div style={{ padding: '18px 22px 8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="eyebrow">Tuesday, Jan 23</div>
+          <button className="tap" style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-soft)' }}>
+            <Icon name="calendar" size={16}/>
+          </button>
+        </div>
+        <h1 className="display" style={{ fontSize: 40, margin: '8px 0 2px', lineHeight: 1.05 }}>
+          Sophie, <span className="display-i">two</span>
+        </h1>
+        <div style={{ fontSize: 13, color: 'var(--ink-mute)' }}>
+          2 years, 4 months &middot; <span style={{ color: 'var(--gold)' }}>30 memories this month</span>
+        </div>
+      </div>
+
+      {/* Recent memories strip */}
+      <div style={{ marginTop: 22 }}>
+        <div style={{ padding: '0 22px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <h3 className="display" style={{ fontSize: 20, margin: 0 }}>Recent</h3>
+          <button className="tap" onClick={() => onTabChange('memories')} style={{ fontSize: 12, color: 'var(--ink-mute)', display: 'flex', alignItems: 'center', gap: 3 }}>
+            All memories <Icon name="chevron" size={12}/>
+          </button>
+        </div>
+        <div style={{ overflowX: 'auto', display: 'flex', gap: 10, padding: '0 22px 4px' }} className="scroll-area" >
+          {MEMORIES.slice(0, 8).map((m, i) => (
+            <div key={m.id} className={`media-ph ${catCls(m.cat)} tap stagger-item`}
+                 style={{ minWidth: 110, height: 140, animationDelay: `${i * 40}ms` }}
+                 onClick={() => onOpenMemory(m)}>
+              <span>{catLabel(m.cat).toLowerCase()} &middot; {m.date}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* This Week's Highlights — featured reel */}
+      <div style={{ padding: '24px 22px 0' }}>
+        <h3 className="display" style={{ fontSize: 20, margin: '0 0 10px' }}>This week&rsquo;s highlights</h3>
+        <button
+          className="tap"
+          onClick={() => onOpenReel(REELS[0])}
+          style={{ width: '100%', padding: 0, textAlign: 'left', display: 'block' }}
+        >
+          <div className={`media-ph ${catCls(REELS[0].cat)}`} style={{ height: 180, position: 'relative', alignItems: 'stretch', padding: 0 }}>
+            {/* Play button */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 56, height: 56, borderRadius: '50%', background: 'rgba(247,242,235,0.92)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
+              <Icon name="play" size={22}/>
+            </div>
+            {/* Content overlay */}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 3, padding: 18, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ padding: '4px 9px', borderRadius: 6, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', color: 'var(--cream)', fontSize: 9.5, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Icon name="sparkle" size={10}/> Curated by Curiouser
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--cream)', fontFamily: 'JetBrains Mono, monospace' }}>{REELS[0].count} moments</div>
+              </div>
+              <div>
+                <div className="display" style={{ fontSize: 26, color: 'var(--cream)', lineHeight: 1.1, marginBottom: 4 }}>
+                  {REELS[0].title}
+                </div>
+                <div style={{ fontSize: 12, color: 'rgba(247,242,235,0.75)' }}>{REELS[0].subtitle}</div>
+              </div>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* Development pulse */}
+      <div style={{ padding: '26px 22px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+          <h3 className="display" style={{ fontSize: 20, margin: 0 }}>Development pulse</h3>
+          <button className="tap" onClick={() => onTabChange('dev')} style={{ fontSize: 12, color: 'var(--ink-mute)', display: 'flex', alignItems: 'center', gap: 3 }}>
+            Full report <Icon name="chevron" size={12}/>
+          </button>
+        </div>
+
+        <div className="card card-hi" style={{ padding: 18 }}>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontStyle: 'italic', fontFamily: 'Cormorant Garamond', lineHeight: 1.5, marginBottom: 16 }}>
+            &ldquo;Sophie is flourishing in language and artistic expression this week.&rdquo;
+          </div>
+
+          {/* 7 rings, one per area */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+            {EYFS.map((a) => (
+              <button key={a.id} className="tap" onClick={() => onOpenEyfs(a.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                <PulseRing score={a.score} color={a.color} />
+                <div style={{ fontSize: 8.5, color: 'var(--ink-mute)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.05em' }}>{a.short}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quote / moment of day */}
+      <div style={{ padding: '24px 22px 30px' }}>
+        <div style={{ padding: '20px 4px', borderTop: '1px solid var(--line)', textAlign: 'center' }}>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>Moment of the day</div>
+          <div className="display-i" style={{ fontSize: 22, lineHeight: 1.4, color: 'var(--ink-soft)' }}>
+            &ldquo;Dog go home.&rdquo;
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-mute)', marginTop: 8, fontFamily: 'JetBrains Mono, monospace' }}>
+            SOPHIE&rsquo;S FIRST SENTENCE &middot; JAN 05
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PulseRing({ score, size = 36, color = 'var(--gold)' }) {
+  const r = 14.5;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - score);
+  return (
+    <svg width={size} height={size} viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r={r} className="ring-bg"/>
+      <circle cx="18" cy="18" r={r} className="ring-fg" style={{ stroke: color }}
+              strokeDasharray={c} strokeDashoffset={offset}/>
+    </svg>
+  );
+}
+
+/* ========================================================================
+   MEMORIES LIBRARY
+   ======================================================================== */
+function MemoriesScreen({ onOpenMemory }) {
+  const [filter, setFilter] = useState('all');
+  const filtered = useMemo(
+    () => filter === 'all' ? MEMORIES : MEMORIES.filter(m => m.cat === filter),
+    [filter]
+  );
+
+  // Group by date for a journal feel
+  const groups = useMemo(() => {
+    const map = {};
+    filtered.forEach(m => { (map[m.date] = map[m.date] || []).push(m); });
+    return Object.entries(map);
+  }, [filtered]);
+
+  return (
+    <div className="scroll-area">
+      <div style={{ padding: '18px 22px 8px' }}>
+        <div className="eyebrow">Library</div>
+        <h1 className="display" style={{ fontSize: 36, margin: '6px 0 2px', lineHeight: 1.05 }}>
+          {filter === 'all' ? <>Every <span className="display-i">moment.</span></> : catLabel(filter)}
+        </h1>
+        <div style={{ fontSize: 13, color: 'var(--ink-mute)' }}>
+          {filtered.length} memories
+          {filter !== 'all' && <> &middot; <button onClick={() => setFilter('all')} style={{ color: 'var(--gold)', fontSize: 13 }}>show all</button></>}
+        </div>
+      </div>
+
+      {/* Filter chips */}
+      <div style={{ overflowX: 'auto', display: 'flex', gap: 8, padding: '14px 22px 8px' }} className="scroll-area">
+        {CATEGORIES.map(c => (
+          <button key={c.id}
+                  className={`chip tap ${filter === c.id ? 'active' : ''}`}
+                  onClick={() => setFilter(c.id)}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Journal groups */}
+      <div style={{ padding: '12px 22px 30px' }}>
+        {groups.map(([date, items], gi) => (
+          <div key={date} className="stagger-item" style={{ marginTop: gi === 0 ? 0 : 26, animationDelay: `${gi * 40}ms` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div className="display" style={{ fontSize: 15, color: 'var(--ink-soft)' }}>{date}</div>
+              <div style={{ flex: 1, height: 1, background: 'var(--line)' }}/>
+              <div className="mono" style={{ color: 'var(--ink-faint)' }}>{items.length}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+              {items.map((m) => (
+                <button key={m.id} onClick={() => onOpenMemory(m)} className="tap" style={{ padding: 0, textAlign: 'left' }}>
+                  <div className={`media-ph ${catCls(m.cat)}`} style={{ height: 108, padding: 7 }}>
+                    <span style={{ fontSize: 8 }}>{catLabel(m.cat).toLowerCase()}</span>
+                  </div>
+                  <div style={{ marginTop: 5, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                    {m.eyfs.slice(0, 1).map(eid => {
+                      const a = EYFS.find(x => x.id === eid);
+                      return <span key={eid} className="chip-sm">{a.short}</span>;
+                    })}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   REELS
+   ======================================================================== */
+function ReelsScreen({ onOpenReel }) {
+  return (
+    <div className="scroll-area">
+      <div style={{ padding: '18px 22px 8px' }}>
+        <div className="eyebrow">Reels &amp; albums</div>
+        <h1 className="display" style={{ fontSize: 36, margin: '6px 0 2px', lineHeight: 1.05 }}>
+          Curated <span className="display-i">by Curiouser.</span>
+        </h1>
+        <div style={{ fontSize: 13, color: 'var(--ink-mute)' }}>
+          Themed reels and albums, gently assembled for you.
+        </div>
+      </div>
+
+      {/* Create new reel */}
+      <div style={{ padding: '18px 22px 0' }}>
+        <button className="tap" style={{ width: '100%', padding: '16px 18px', background: 'var(--surface)', border: '1px dashed var(--line-strong)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--gold-wash)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="sparkle" size={18}/>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Create a new reel</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-mute)', marginTop: 2 }}>Pick a theme &middot; custom range &middot; milestone</div>
+          </div>
+          <Icon name="plus" size={18}/>
+        </button>
+      </div>
+
+      {/* Reel list */}
+      <div style={{ padding: '22px 22px 30px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {REELS.map((r, i) => (
+          <button key={r.id} className="tap stagger-item" onClick={() => onOpenReel(r)}
+                  style={{ padding: 0, textAlign: 'left', animationDelay: `${i * 50}ms` }}>
+            <div className={`media-ph ${catCls(r.cat)}`} style={{ height: 210, position: 'relative', padding: 0, alignItems: 'stretch' }}>
+              {/* Play */}
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 52, height: 52, borderRadius: '50%', background: 'rgba(247,242,235,0.92)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+                <Icon name="play" size={20}/>
+              </div>
+              <div style={{ position: 'absolute', inset: 0, padding: 16, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', zIndex: 3 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '3px 8px', borderRadius: 5, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', color: 'var(--cream)', fontSize: 9, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <Icon name="sparkle" size={9}/> AI
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--cream)', fontFamily: 'JetBrains Mono, monospace' }}>
+                    {Math.floor(r.count * 5 / 60)}:{String((r.count * 5) % 60).padStart(2, '0')}
+                  </div>
+                </div>
+                <div>
+                  <div className="display" style={{ fontSize: 28, color: 'var(--cream)', lineHeight: 1.05, marginBottom: 3 }}>{r.title}</div>
+                  <div style={{ fontSize: 11.5, color: 'rgba(247,242,235,0.75)', fontFamily: 'JetBrains Mono, monospace' }}>{r.range} &middot; {r.count} moments</div>
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: '10px 4px 0', fontSize: 12.5, color: 'var(--ink-soft)', fontStyle: 'italic', fontFamily: 'Cormorant Garamond', fontSize: 14 }}>
+              {r.subtitle}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   DEVELOPMENT REPORT
+   ======================================================================== */
+function DevScreen({ onOpenEyfs, onMethodology, onOpenMemory }) {
+  return (
+    <div className="scroll-area">
+      <div style={{ padding: '18px 22px 8px' }}>
+        <div className="eyebrow">EYFS Report</div>
+        <h1 className="display" style={{ fontSize: 36, margin: '6px 0 2px', lineHeight: 1.05 }}>
+          Sophie&rsquo;s <span className="display-i">January.</span>
+        </h1>
+        <div style={{ fontSize: 13, color: 'var(--ink-mute)' }}>
+          2 years, 4 months &middot; {REPORT.period}
+        </div>
+      </div>
+
+      {/* Hero summary */}
+      <div style={{ padding: '18px 22px 0' }}>
+        <div className="card card-hi" style={{ padding: 22, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: -30, right: -30, width: 140, height: 140, borderRadius: '50%', background: 'radial-gradient(circle, var(--gold-wash) 0%, transparent 70%)' }}/>
+          <div className="eyebrow" style={{ color: 'var(--gold)', marginBottom: 12, position: 'relative' }}>Overall reflection</div>
+          <div className="display" style={{ fontSize: 19, lineHeight: 1.45, position: 'relative' }}>
+            {REPORT.summary}
+          </div>
+          <div style={{ display: 'flex', gap: 14, marginTop: 18, paddingTop: 16, borderTop: '1px solid var(--line)', position: 'relative' }}>
+            <DevStat label="Moments" value="30"/>
+            <div style={{ width: 1, background: 'var(--line)' }}/>
+            <DevStat label="Confident" value="2"/>
+            <div style={{ width: 1, background: 'var(--line)' }}/>
+            <DevStat label="Developing" value="3"/>
+          </div>
+        </div>
+      </div>
+
+      {/* 7 EYFS area cards */}
+      <div style={{ padding: '22px 22px 8px' }}>
+        <div className="eyebrow" style={{ marginBottom: 12 }}>The Seven Areas</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {REPORT.areas.map((a, i) => (
+            <button key={a.id} className="tap stagger-item" onClick={() => onOpenEyfs(a.id)}
+                    style={{ width: '100%', padding: 0, textAlign: 'left', animationDelay: `${i * 50}ms` }}>
+              <div className="card" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
+                <PulseRing score={a.score} size={44} color={a.color}/>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: a.color, marginBottom: 3 }}>
+                    <EyfsIcon id={a.id} size={13}/>
+                    <div style={{ fontSize: 10, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{a.level}</div>
+                  </div>
+                  <div className="display" style={{ fontSize: 17, lineHeight: 1.2 }}>{a.name}</div>
+                </div>
+                <Icon name="chevron" size={16}/>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Methodology link */}
+      <div style={{ padding: '18px 22px 30px', textAlign: 'center' }}>
+        <button className="tap" onClick={onMethodology} style={{ fontSize: 12, color: 'var(--ink-mute)', textDecoration: 'underline', textUnderlineOffset: 3, fontStyle: 'italic', fontFamily: 'Cormorant Garamond', fontSize: 14 }}>
+          How this assessment works
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DevStat({ label, value }) {
+  return (
+    <div style={{ flex: 1 }}>
+      <div className="display" style={{ fontSize: 28, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 10, color: 'var(--ink-mute)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   PROFILE
+   ======================================================================== */
+function ProfileScreen({ onOpenAutoSync, autoSyncEnabled }) {
+  return (
+    <div className="scroll-area">
+      <div style={{ padding: '18px 22px 8px' }}>
+        <div className="eyebrow">Profile &amp; settings</div>
+        <h1 className="display" style={{ fontSize: 36, margin: '6px 0 24px', lineHeight: 1.05 }}>
+          Your <span className="display-i">family.</span>
+        </h1>
+      </div>
+
+      {/* Child card */}
+      <div style={{ padding: '0 22px' }}>
+        <div className="card card-hi" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #E9C589, #C98B2C)', color: '#1a1203', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Cormorant Garamond', fontSize: 30, fontWeight: 500, boxShadow: '0 6px 16px rgba(201,139,44,0.25)' }}>
+            S
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="display" style={{ fontSize: 22, lineHeight: 1.1 }}>Sophie</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 3 }}>14 Sep 2023 &middot; 2y 4m</div>
+          </div>
+          <button className="tap" style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="edit" size={16}/>
+          </button>
+        </div>
+
+        <button className="tap" style={{ width: '100%', marginTop: 10, padding: '14px 18px', background: 'transparent', border: '1px dashed var(--line-strong)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 12, color: 'var(--ink-soft)' }}>
+          <div style={{ width: 36, height: 36, borderRadius: '50%', border: '1px dashed var(--line-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="plus" size={16}/>
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 500 }}>Add a sibling</div>
+        </button>
+      </div>
+
+      {/* Auto-sync hero card — the killer feature, given its own visual weight */}
+      <div style={{ padding: '22px 22px 0' }}>
+        <button className="tap" onClick={onOpenAutoSync} style={{ width: '100%', padding: 0, textAlign: 'left' }}>
+          <div className="card" style={{ padding: 18, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(201,139,44,0.12), rgba(191,95,73,0.06))', border: '1px solid rgba(201,139,44,0.22)' }}>
+            <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,139,44,0.22) 0%, transparent 70%)' }}/>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--gold-wash)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="sparkle" size={20}/>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>Auto-sync</div>
+                  {autoSyncEnabled && (
+                    <span style={{ padding: '1px 6px', fontSize: 9, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', background: 'var(--gold)', color: '#1a1203', borderRadius: 4, fontWeight: 600 }}>ON</span>
+                  )}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-mute)', lineHeight: 1.4 }}>
+                  {autoSyncEnabled
+                    ? <>Finding Sophie in your camera roll, quietly.</>
+                    : <>Paused. Tap to resume.</>
+                  }
+                </div>
+              </div>
+              <Icon name="chevron" size={16}/>
+            </div>
+            {autoSyncEnabled && (
+              <div style={{ position: 'relative', marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)', display: 'flex', gap: 12 }}>
+                <MiniStat label="Scanned" value="2,847"/>
+                <div style={{ width: 1, background: 'var(--line)' }}/>
+                <MiniStat label="Added" value="128"/>
+                <div style={{ width: 1, background: 'var(--line)' }}/>
+                <MiniStat label="Last sync" value="42m"/>
+              </div>
+            )}
+          </div>
+        </button>
+      </div>
+
+      {/* Settings sections */}
+      <div style={{ padding: '22px 22px 0' }}>
+        <SettingsGroup title="Privacy">
+          <SettingsRow icon="lock" label="Data &amp; privacy" sub="On-device processing, your memories stay yours" />
+          <SettingsRow icon="camera" label="Photo library access" sub="Full access &middot; manage in iOS settings" />
+        </SettingsGroup>
+
+        <SettingsGroup title="Your memories">
+          <SettingsRow icon="export" label="Export all memories" sub="As a gentle keepsake, any time" />
+          <SettingsRow icon="book" label="Export development report" sub="PDF, beautifully typeset" />
+        </SettingsGroup>
+
+        <SettingsGroup title="About">
+          <SettingsRow icon="sparkle" label="How assessment works" sub="Grounded in the UK EYFS framework" />
+          <SettingsRow icon="heart" label="Send feedback" sub="We&rsquo;re building this with you" />
+        </SettingsGroup>
+      </div>
+
+      <div style={{ padding: '20px 22px 30px', textAlign: 'center' }}>
+        <div className="display-i" style={{ fontSize: 17, color: 'var(--ink-mute)' }}>Curiouser</div>
+        <div className="mono" style={{ color: 'var(--ink-faint)', marginTop: 4 }}>v1.0 &middot; made with care</div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsGroup({ title, children }) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div className="eyebrow" style={{ marginBottom: 10, paddingLeft: 4 }}>{title}</div>
+      <div className="card">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SettingsRow({ icon, label, sub }) {
+  return (
+    <button className="tap" style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--line)', background: 'transparent', textAlign: 'left' }}>
+      <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-hi)', color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name={icon} size={16}/>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 500 }} dangerouslySetInnerHTML={{ __html: label }}/>
+        <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }} dangerouslySetInnerHTML={{ __html: sub }}/>
+      </div>
+      <Icon name="chevron" size={14}/>
+    </button>
+  );
+}
+
+function MiniStat({ label, value }) {
+  return (
+    <div style={{ flex: 1 }}>
+      <div className="display" style={{ fontSize: 20, lineHeight: 1, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div style={{ fontSize: 9, color: 'var(--ink-mute)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+    </div>
+  );
+}
+
+/* iOS-style toggle */
+function Toggle({ on, onChange }) {
+  return (
+    <button onClick={() => onChange(!on)}
+            style={{
+              width: 48, height: 28, borderRadius: 14,
+              background: on ? 'var(--gold)' : 'var(--line-strong)',
+              position: 'relative',
+              transition: 'background 220ms ease',
+              padding: 0, border: 'none', flexShrink: 0,
+            }}>
+      <div style={{
+        position: 'absolute',
+        top: 2, left: on ? 22 : 2,
+        width: 24, height: 24,
+        background: '#fff',
+        borderRadius: '50%',
+        transition: 'left 220ms cubic-bezier(.2,.8,.2,1)',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+      }}/>
+    </button>
+  );
+}
+
+/* Auto-sync settings — the full management sheet */
+function AutoSyncSettingsSheet({ onClose, enabled, onToggle, lastSyncMinutes }) {
+  const [rescanning, setRescanning] = useState(false);
+  const [filterFaces, setFilterFaces] = useState(true);
+  const [includeVideos, setIncludeVideos] = useState(true);
+  const [notifyNew, setNotifyNew] = useState(true);
+
+  const doRescan = () => {
+    if (rescanning) return;
+    setRescanning(true);
+    setTimeout(() => setRescanning(false), 2200);
+  };
+
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose}/>
+      <div className="sheet full" style={{ padding: 0 }}>
+        <div className="scroll-area" style={{ padding: '20px 22px 40px' }}>
+          <button className="tap" onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-soft)', fontSize: 13, padding: '4px 0', marginBottom: 16 }}>
+            <Icon name="chevron-l" size={16}/> Back
+          </button>
+
+          <div className="eyebrow" style={{ marginBottom: 8 }}>Auto-sync</div>
+          <h2 className="display" style={{ fontSize: 30, margin: '0 0 8px', lineHeight: 1.1 }}>
+            Your camera roll,<br/><span className="display-i">quietly read.</span>
+          </h2>
+          <p style={{ fontSize: 13, color: 'var(--ink-mute)', lineHeight: 1.55, margin: '0 0 22px' }}>
+            Curiouser watches for new photos of Sophie and adds them to your library, on-device.
+          </p>
+
+          {/* Main toggle */}
+          <div className="card card-hi" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: enabled ? 'var(--gold-wash)' : 'var(--surface)',
+                color: enabled ? 'var(--gold)' : 'var(--ink-mute)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 220ms',
+              }}>
+                <Icon name="sparkle" size={20}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 3 }}>
+                  Auto-sync {enabled ? 'is on' : 'is paused'}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-mute)' }}>
+                  {enabled
+                    ? <>Last sync {lastSyncMinutes} minutes ago</>
+                    : <>No new moments will be added</>
+                  }
+                </div>
+              </div>
+              <Toggle on={enabled} onChange={onToggle}/>
+            </div>
+
+            {/* Live activity */}
+            {enabled && (
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--line)', display: 'flex', gap: 10 }}>
+                <MiniStat label="Scanned" value="2,847"/>
+                <div style={{ width: 1, background: 'var(--line)' }}/>
+                <MiniStat label="Of Sophie" value="128"/>
+                <div style={{ width: 1, background: 'var(--line)' }}/>
+                <MiniStat label="This week" value="+14"/>
+              </div>
+            )}
+          </div>
+
+          {/* Re-scan */}
+          {enabled && (
+            <button className="tap" onClick={doRescan} disabled={rescanning}
+                    style={{ width: '100%', marginTop: 12, padding: '14px 16px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', opacity: rescanning ? 0.6 : 1 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface-hi)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {rescanning
+                  ? <div className="spinner" style={{ width: 16, height: 16, borderWidth: 1.5 }}/>
+                  : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg>
+                }
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500 }}>
+                  {rescanning ? 'Re-scanning your library…' : 'Re-scan library now'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>
+                  {rescanning ? 'This only takes a moment' : 'Check for anything we might have missed'}
+                </div>
+              </div>
+            </button>
+          )}
+
+          {/* What to include */}
+          {enabled && (
+            <>
+              <div className="eyebrow" style={{ marginTop: 24, marginBottom: 10, paddingLeft: 4 }}>What to include</div>
+              <div className="card">
+                <ToggleRow
+                  icon="user"
+                  label="Only photos with Sophie"
+                  sub="Uses on-device face matching"
+                  on={filterFaces} onChange={setFilterFaces}
+                />
+                <ToggleRow
+                  icon="reel"
+                  label="Include short videos"
+                  sub="Under 60 seconds"
+                  on={includeVideos} onChange={setIncludeVideos}
+                />
+                <ToggleRow
+                  icon="heart"
+                  label="Notify me when new moments arrive"
+                  sub="A gentle nudge, at most once a day"
+                  on={notifyNew} onChange={setNotifyNew}
+                  last
+                />
+              </div>
+            </>
+          )}
+
+          {/* Manage iOS permission */}
+          <div className="eyebrow" style={{ marginTop: 24, marginBottom: 10, paddingLeft: 4 }}>Permission</div>
+          <div className="card">
+            <button className="tap" style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'transparent', textAlign: 'left' }}>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-hi)', color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="lock" size={16}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500 }}>Photo access</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>Full library &middot; granted Jan 5</div>
+              </div>
+              <span className="chip-sm">Manage in iOS</span>
+            </button>
+          </div>
+
+          {/* Privacy reassurance */}
+          <div style={{ marginTop: 20, padding: 16, background: 'linear-gradient(135deg, var(--gold-wash), transparent)', borderRadius: 14, border: '1px solid rgba(201,139,44,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--gold)', marginBottom: 10 }}>
+              <Icon name="lock" size={13}/>
+              <div className="mono">A QUIET PROMISE</div>
+            </div>
+            <div className="display-i" style={{ fontSize: 15, lineHeight: 1.45, color: 'var(--ink)' }}>
+              &ldquo;Face recognition happens on your device. Your photos are never uploaded to our servers, and we never see what&rsquo;s in them.&rdquo;
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ToggleRow({ icon, label, sub, on, onChange, last }) {
+  return (
+    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: last ? 'none' : '1px solid var(--line)' }}>
+      <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-hi)', color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon name={icon} size={15}/>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>{sub}</div>
+      </div>
+      <Toggle on={on} onChange={onChange}/>
+    </div>
+  );
+}
+
+/* ========================================================================
+   TAB BAR
+   ======================================================================== */
+function TabBar({ current, onChange, onAdd }) {
+  const items = [
+    { id: 'home',     label: 'Home',     icon: 'home' },
+    { id: 'memories', label: 'Memories', icon: 'grid' },
+    { id: 'reels',    label: 'Reels',    icon: 'reel' },
+    { id: 'dev',      label: 'Growth',   icon: 'chart' },
+    { id: 'profile',  label: 'Profile',  icon: 'user' },
+  ];
+  return (
+    <div className="tabbar">
+      {items.slice(0, 2).map(it => (
+        <button key={it.id} className={`tab-item tap ${current === it.id ? 'active' : ''}`} onClick={() => onChange(it.id)}>
+          <Icon name={it.icon} size={20}/>
+          <span>{it.label}</span>
+        </button>
+      ))}
+      <div className="tab-add-wrap">
+        <button className="tab-add tap" onClick={onAdd}>
+          <Icon name="plus" size={22} stroke={2.2}/>
+        </button>
+      </div>
+      {items.slice(2).map(it => (
+        <button key={it.id} className={`tab-item tap ${current === it.id ? 'active' : ''}`} onClick={() => onChange(it.id)}>
+          <Icon name={it.icon} size={20}/>
+          <span>{it.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ========================================================================
+   UPLOAD SHEET
+   ======================================================================== */
+function UploadSheet({ onClose }) {
+  const [phase, setPhase] = useState('choose'); // choose | organizing | confirm
+  const [tags, setTags] = useState(['Playtime', 'Physical', 'Math']);
+
+  useEffect(() => {
+    if (phase === 'organizing') {
+      const t = setTimeout(() => setPhase('confirm'), 1800);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
+
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose}/>
+      <div className="sheet">
+        <div className="sheet-grab"/>
+
+        {phase === 'choose' && (
+          <div>
+            <h3 className="display" style={{ fontSize: 24, margin: '4px 0 4px' }}>Add a moment</h3>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-mute)', marginBottom: 20 }}>Curiouser will organise it gently.</div>
+
+            <button className="tap" style={{ width: '100%', padding: 16, background: 'var(--surface-hi)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10, textAlign: 'left' }}
+                    onClick={() => setPhase('organizing')}>
+              <div style={{ width: 42, height: 42, borderRadius: 11, background: 'var(--gold-wash)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="grid" size={20}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>From camera roll</div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-mute)', marginTop: 2 }}>Photos &amp; short videos</div>
+              </div>
+              <Icon name="chevron" size={16}/>
+            </button>
+
+            <button className="tap" style={{ width: '100%', padding: 16, background: 'var(--surface-hi)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, textAlign: 'left' }}
+                    onClick={() => setPhase('organizing')}>
+              <div style={{ width: 42, height: 42, borderRadius: 11, background: 'var(--terra-wash)', color: '#E08A72', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="camera" size={20}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Record now</div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-mute)', marginTop: 2 }}>Capture a quick moment</div>
+              </div>
+              <Icon name="chevron" size={16}/>
+            </button>
+
+            <button className="btn-ghost tap" onClick={onClose}>Cancel</button>
+          </div>
+        )}
+
+        {phase === 'organizing' && (
+          <div style={{ padding: '40px 20px 32px', textAlign: 'center' }}>
+            <div className="spinner" style={{ margin: '0 auto 22px' }}/>
+            <div className="display" style={{ fontSize: 22, marginBottom: 8 }}>Organising&hellip;</div>
+            <div style={{ fontSize: 13, color: 'var(--ink-mute)', lineHeight: 1.5 }}>
+              Looking at the colours, the sounds,<br/>and the little story inside this moment.
+            </div>
+            <div className="dots" style={{ marginTop: 20 }}>
+              <span/><span/><span/>
+            </div>
+          </div>
+        )}
+
+        {phase === 'confirm' && (
+          <div>
+            <h3 className="display" style={{ fontSize: 24, margin: '4px 0 4px' }}>We noticed&hellip;</h3>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-mute)', marginBottom: 18 }}>Edit any tag that doesn&rsquo;t feel right.</div>
+
+            <div className="media-ph ph-playtime" style={{ height: 160, marginBottom: 16, padding: 12 }}>
+              <span>playtime &middot; just now</span>
+            </div>
+
+            <div style={{ fontSize: 11, color: 'var(--ink-mute)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Auto-detected
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+              {tags.map(t => (
+                <button key={t} className="chip tap" style={{ background: 'var(--gold-wash)', color: 'var(--gold)', border: '1px solid rgba(201,139,44,0.3)' }}
+                        onClick={() => setTags(tags.filter(x => x !== t))}>
+                  {t} &nbsp;<span style={{ opacity: 0.6 }}>&times;</span>
+                </button>
+              ))}
+              <button className="chip tap" style={{ borderStyle: 'dashed' }}>+ Add tag</button>
+            </div>
+
+            <div className="card" style={{ padding: 14, marginTop: 18, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <div style={{ color: 'var(--gold)', marginTop: 1 }}><Icon name="sparkle" size={15}/></div>
+              <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5, fontStyle: 'italic', fontFamily: 'Cormorant Garamond', fontSize: 14 }}>
+                &ldquo;Sophie stacking blocks &mdash; focused concentration, fine motor skills at work.&rdquo;
+              </div>
+            </div>
+
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button className="btn-primary tap" onClick={onClose}>Save moment</button>
+              <button className="btn-ghost tap" onClick={onClose}>Discard</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ========================================================================
+   MEMORY DETAIL
+   ======================================================================== */
+function MemoryDetailSheet({ memory, onClose, onOpenEyfs }) {
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose}/>
+      <div className="sheet full" style={{ padding: 0 }}>
+        <div className={`media-ph ${catCls(memory.cat)}`} style={{ height: 340, borderRadius: 0, alignItems: 'flex-start', justifyContent: 'space-between', padding: 24, position: 'relative' }}>
+          <button className="tap" onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', color: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, position: 'relative' }}>
+            <Icon name="close" size={16}/>
+          </button>
+          <div style={{ position: 'absolute', bottom: 20, left: 24, right: 24, zIndex: 3 }}>
+            <div className="mono" style={{ color: 'rgba(247,242,235,0.85)', marginBottom: 8 }}>{catLabel(memory.cat).toUpperCase()} &middot; {memory.date}</div>
+            <div className="display" style={{ fontSize: 26, color: 'var(--cream)', lineHeight: 1.2 }}>
+              {memory.cap}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: '22px 22px 40px' }}>
+          <div style={{ display: 'flex', gap: 14, paddingBottom: 18, borderBottom: '1px solid var(--line)' }}>
+            <DetailRow icon="calendar" label="Date" value={`${memory.date}, 2026`}/>
+            <div style={{ width: 1, background: 'var(--line)' }}/>
+            <DetailRow icon="pin" label="Where" value={memory.loc}/>
+          </div>
+
+          <div style={{ padding: '18px 0', borderBottom: '1px solid var(--line)' }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>AI caption</div>
+            <div className="display-i" style={{ fontSize: 17, lineHeight: 1.45, color: 'var(--ink-soft)' }}>
+              &ldquo;A small, unforgettable piece of {memory.date.split(' ')[0]}. {memory.cap.replace(/\.$/, '')} &mdash; quietly remarkable.&rdquo;
+            </div>
+          </div>
+
+          <div style={{ padding: '18px 0 0' }}>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>Development areas</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {memory.eyfs.map(eid => {
+                const a = EYFS.find(x => x.id === eid);
+                return (
+                  <button key={eid} className="tap" onClick={() => onOpenEyfs(eid)} style={{ padding: 14, background: 'var(--surface-hi)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', color: 'var(--ink)' }}>
+                    <div style={{ color: a.color }}><EyfsIcon id={eid} size={20}/></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500 }}>{a.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 2, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{a.level}</div>
+                    </div>
+                    <Icon name="chevron" size={14}/>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function DetailRow({ icon, label, value }) {
+  return (
+    <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center', color: 'var(--ink-mute)', marginBottom: 4 }}>
+        <Icon name={icon} size={11}/>
+        <span className="mono">{label.toUpperCase()}</span>
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 500 }}>{value}</div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   REEL PLAYER
+   ======================================================================== */
+function ReelPlayer({ reel, onClose }) {
+  const [playing, setPlaying] = useState(true);
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose}/>
+      <div className="sheet full" style={{ padding: 0, background: '#000' }}>
+        <div className={`media-ph ${catCls(reel.cat)}`} style={{ position: 'absolute', inset: 0, borderRadius: 0, padding: 0, alignItems: 'stretch' }}>
+          {/* close */}
+          <button className="tap" onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, width: 38, height: 38, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', color: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+            <Icon name="close" size={16}/>
+          </button>
+
+          {/* progress bar */}
+          <div style={{ position: 'absolute', top: 20, left: 20, right: 70, zIndex: 10, display: 'flex', gap: 3 }}>
+            {Array.from({ length: reel.count }).map((_, i) => (
+              <div key={i} style={{ flex: 1, height: 2, borderRadius: 1, background: i === 0 ? 'var(--cream)' : 'rgba(247,242,235,0.3)' }}/>
+            ))}
+          </div>
+
+          {/* center play toggle */}
+          <button className="tap" onClick={() => setPlaying(!playing)} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 80, height: 80, borderRadius: '50%', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', color: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, opacity: playing ? 0 : 1, transition: 'opacity 240ms' }}>
+            <Icon name="play" size={30}/>
+          </button>
+
+          {/* bottom content */}
+          <div style={{ position: 'absolute', bottom: 36, left: 24, right: 24, zIndex: 10 }}>
+            <div className="mono" style={{ color: 'rgba(247,242,235,0.75)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Icon name="sparkle" size={10}/> CURATED BY CURIOUSER
+            </div>
+            <div className="display" style={{ fontSize: 34, color: 'var(--cream)', lineHeight: 1.05, marginBottom: 6 }}>
+              {reel.title}
+            </div>
+            <div style={{ fontSize: 13, color: 'rgba(247,242,235,0.72)', fontStyle: 'italic', fontFamily: 'Cormorant Garamond', fontSize: 16 }}>
+              {reel.subtitle}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ========================================================================
+   EYFS AREA DETAIL
+   ======================================================================== */
+function EyfsDetailSheet({ areaId, onClose, onOpenMemory }) {
+  const area = EYFS.find(x => x.id === areaId);
+  const detail = REPORT.details[areaId];
+  const highlights = detail.highlights.map(memById).filter(Boolean);
+
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose}/>
+      <div className="sheet full" style={{ padding: 0 }}>
+        <div className="scroll-area" style={{ padding: '20px 22px 40px' }}>
+          <button className="tap" onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-soft)', fontSize: 13, padding: '4px 0', marginBottom: 20 }}>
+            <Icon name="chevron-l" size={16}/> Back
+          </button>
+
+          <div style={{ color: area.color, marginBottom: 10 }}>
+            <EyfsIcon id={area.id} size={26}/>
+          </div>
+          <div className="mono" style={{ color: area.color, marginBottom: 6 }}>{area.level.toUpperCase()}</div>
+          <h2 className="display" style={{ fontSize: 30, margin: '0 0 16px', lineHeight: 1.1 }}>
+            {area.name}
+          </h2>
+
+          {/* Progress indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 16, background: 'var(--surface-hi)', borderRadius: 14, marginBottom: 22 }}>
+            <PulseRing score={area.score} size={52} color={area.color}/>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginBottom: 3, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Journey so far
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 11.5 }}>
+                <span style={{ color: area.score > 0.5 ? 'var(--ink-mute)' : area.color, fontWeight: area.score <= 0.5 ? 600 : 400 }}>Emerging</span>
+                <span style={{ color: 'var(--ink-faint)' }}>&middot;</span>
+                <span style={{ color: (area.score > 0.5 && area.score < 0.78) ? area.color : 'var(--ink-mute)', fontWeight: (area.score > 0.5 && area.score < 0.78) ? 600 : 400 }}>Developing</span>
+                <span style={{ color: 'var(--ink-faint)' }}>&middot;</span>
+                <span style={{ color: area.score >= 0.78 ? area.color : 'var(--ink-mute)', fontWeight: area.score >= 0.78 ? 600 : 400 }}>Confident</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Highlights */}
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Moments that shaped this</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            {highlights.map(m => (
+              <button key={m.id} className="tap" onClick={() => onOpenMemory(m)}
+                      style={{ width: '100%', padding: 0, textAlign: 'left' }}>
+                <div className="card" style={{ padding: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div className={`media-ph ${catCls(m.cat)}`} style={{ width: 72, height: 72, padding: 6, flexShrink: 0 }}>
+                    <span style={{ fontSize: 8 }}>{m.date}</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.3, marginBottom: 4 }}>{m.cap}</div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-mute)' }}>{m.loc} &middot; {m.date}</div>
+                  </div>
+                  <Icon name="chevron" size={14}/>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Gentle suggestion */}
+          <div style={{ padding: 18, background: 'linear-gradient(135deg, var(--gold-wash), transparent)', borderRadius: 14, border: '1px solid rgba(201,139,44,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--gold)', marginBottom: 10 }}>
+              <Icon name="sparkle" size={14}/>
+              <div className="mono">A GENTLE SUGGESTION</div>
+            </div>
+            <div className="display-i" style={{ fontSize: 18, lineHeight: 1.4, color: 'var(--ink)' }}>
+              &ldquo;{detail.suggestion}&rdquo;
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ========================================================================
+   METHODOLOGY
+   ======================================================================== */
+function MethodologySheet({ onClose }) {
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose}/>
+      <div className="sheet">
+        <div className="sheet-grab"/>
+        <h3 className="display" style={{ fontSize: 24, margin: '4px 0 14px' }}>How this works</h3>
+        <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 16 }}>
+          Curiouser quietly reads your child&rsquo;s moments and reflects them against the UK&rsquo;s <em style={{ color: 'var(--gold)' }}>Early Years Foundation Stage</em> framework &mdash; the seven areas that together describe how children grow between 0 and 5.
+        </div>
+        <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 16 }}>
+          We never grade. We never compare. We simply notice the threads running through your memories, and offer gentle ideas for what might come next.
+        </div>
+        <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 20, fontStyle: 'italic', fontFamily: 'Cormorant Garamond', fontSize: 16 }}>
+          &ldquo;The best observations are the quiet ones &mdash; the small moments where a child surprises themselves.&rdquo;
+        </div>
+        <button className="btn-primary tap" onClick={onClose}>Understood</button>
+      </div>
+    </>
+  );
+}
+
+/* ========================================================================
+   MOUNT
+   ======================================================================== */
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
